@@ -1,0 +1,146 @@
+---
+title: | 
+  ![](https://i.imgur.com/SWWUQpP.png){width=500px style="display: block; margin:0 auto;"} 
+  Tutorial 9:  Teste de Hipóteses
+author: "Victor Lobato dos Santos"
+output:
+  html_document:
+    highlight: haddock
+    includes:
+      in_header: "fever_icon.html"
+    theme: flatly
+    number_sections: yes
+    toc: yes
+    toc_float:
+      collapsed: yes
+      smooth_scroll: yes
+  pdf_document:
+    toc: yes
+---
+<div class="text-justify">
+  
+# Teste de Hipótese  
+
+O teste de hipótese é utilizado para avaliar os resultados de um experimento. É uma regra de decisão que permite aceitar ou rejeitar uma hipótese sobre um ou mais parâmetros da população, com base nas informações da amostra.  
+De forma correlata tem-se as **hipóteses estatísticas** que são consideradas sobre a distribuição de probabilidade da população.  
+
+* **Hipótese de nulidade (H0)**: estabelece que não existe diferença entre os parâmetros considerados. Se enunciada em termos quatitativos, geralmente, é uma igualdade.  
+
+*  **Hipótese alternativa (H1 ou H2)**: É qualquer hipótese diferente de H0. Ou seja, é aquela que será aceita caso o teste indique que H0 deve ser rejeitada. Quando enunciada em termos quantitativos, geralmente é uma desigualdade.  
+
+Para teste de hipóteses, consideramos também os **erros cometidos na aplicaçãode um teste**, temos erro tipo I e tipo II:  
+
+* **Erro tipo I**: É o erro de rejeitar H0 dado que essa hipótese é verdadeira;  
+
++ A probabilidade de ocorrer o erro do tipo I é representada pelo nível de significância do teste  
+
+* **Erro tipo II**: Não rejeitar a hipótese de nulidade dado que essa hipótese é falsa;  
+
++ A probabilidade de ocorrer o erro do tipo II é representada por $\beta$. A probabilidade de $1 - \beta $ é chamada de **poder do teste**;  
+
+A **Significância** de um teste estatístico também é parte importante do processo pois, um teste de hipóteses é significativo ou insgnificante a um nível de significância probabilidade, se a hipótese H0 for rejeitada a a este nível, caso contrário o teste não é significativo.
+
+## Teste unilateral e bilateral  
+
+De acordo com o objetivo estudado, formamos a hipótese alternativa do teste e podemos usar os dois extremos da distribuição teórica para a região crítica (teste bilateral) ou apenas um dos extremos da distribuição com região crítica (teste unilateral)
+
+No Rstudio, calculamos um teste de hipótese através da função `t.teste()`.  
+Suponha que você deseja comparar a relação entre dois tipos de medicamentos, tradicional e genérico de acordo com o tempo de uso do medicamento para saber qual se mostra mais eficiente:  
+
+* Hipótese nula: A média de efeito do uso em tempo dos dois remédios é igual;  
+
+* Hipótese alternativa: A média de efeito do uso em tempo dos dois remédios é diferente;  
+
+Seu nível de significância é de 0,05.  
+
+```{r, message=FALSE, warning=FALSE}
+#dados da diversidade com presença da espécie invasora
+tradicional <- c(4.5, 5.5, 6, 6, 5.5, 5.5, 8)
+
+#dados da diversidade sem a espécie invasora
+generico <- c(4, 5.5, 6, 5, 4.5, 6, 6.5)
+
+#Calculando o teste de hipóteses
+t.test(tradicional, generico,   
+       alternative = "greater", 
+       conf.level = 0.95)  
+```
+
+Vamos entender os passos do script para em seguia interpretar os dados:  
+
+* Primeiro foram criados vetores com os dados hipotéticos referente aos remédio tradicional (*tradicional*) e ao remédio genérico (*generico*);  
+
+* Em seguida nós utilizamos a função `t.test()` para calcular o teste de hipóteses. Adicionamos os vetores selecionados e acrescentamos o argumeto `alternative` que foi definido como `alternative = "greater"` indicando que estamos fazendo um teste de hipótese para identificar a maior média. Existem diferentes possibilidades para compor o argumento alternative, como por exemplo, caso tivéssemos definido o argumento alternative com "*two.sided*" estariamos realizando um teste de hipótese bilateral;  
+
+* Acrescentamos também, o argumento `conf.level` e definimos como 0.95 para demosntrar que queremos um intervalo de confiança de 95%.  
+
+
+Para interpretar ainda melhor os resultados deste teste, podemos por exemplo, plotar um gráfico boxplot a partir da função `boxplot()`  
+
+```{r, message=FALSE, warning=FALSE}
+library(ggplot2)
+
+#definindo o data.frame
+dados_d2 <- data.frame(
+  tratamento = c("tradicional", "generico"),
+  horas = c(tradicional, generico)
+)
+
+#Carregando a biblioteca plyr para ordenar os dados
+library(plyr)
+dados_ar <- arrange(dados_d2,desc(tratamento))
+
+#Gerando o gráfico com ggplot
+ggplot(dados_ar, aes(x = tratamento, y = horas)) +
+  geom_boxplot(fill = c("royalblue", "orange")) +
+  stat_summary(fun.y = mean, geom = "point", size = 3, color = "red") +
+  labs(title = "Diferença entre remédio tradicional e genérico",
+       x = "Remédios",
+       y = "Tempo") +
+  annotate("text", x = 1, y = 7, label = "p-value = 0.1815", color = "red") +
+  theme_gray()
+
+```  
+
+Vamos explicar a criação deste gráfico:  
+
+* Utilizamos a função `ggpplot()`, do pacote *ggplot2* para realizar o plot do gráfico e ddicionamos na função, o dataframe criado contendo as variáveis de nosso exemplo. Em seguida, adicionamos o argumento `aes` para definir nossos eixos x e y;  
+
+* Com a função `geom_boxplot()` nós definimos que o tipo de gráfico desejado é um boxplot. Em seguida, adicionamos o argumento `fill` para definir as cores das caixas.  
+
+* A função `stat_summary` nos permite adicionar resumos de dados no gráfico, como média, mediana, etc. Nela, atribuimos o argumento `fun.y = mean` para adicionar a média dos dados no resumo e, com o argumento `geom = point` nós definimos a forma geométrica que essa média será apresentada no gráfico. Com o argumento `size = 3`, nós definimos o tamanho da forma e com `color`, definimos a cor da forma;  
+
+* Adiante, nós utilizamos a função `labs()`, para definir o nome do título, eixo x e eixo y;  
+
+* Por fim, com a função `annotate()` nós acrescentamos elementosa adiconais no gruáfico, como textos, linhas, etc. Aqui, nós definimos um texto ("text"), no local do eixo x e y, respectivamente e, com o argumento `label` nós definimos nosso texto.  
+
+Vamos aplicar mais um exemplo:  
+
+A média de tempo de sono dos idosos em casas de repouso é de 6.13h. Uma enfermeira quer saber se os idosos que residem no pavilhão em que trabalha tem tempo de sono diferente do tempo de sono de idosos internatos em outras instituições. Uma mostra de quatro pessoas fornecem os seguintes tempos de sono: 5, 4, 6, 5. Aplique o teste t com nível de significância de 5% (0,05).  
+
+```{r, message=FALSE, warning=FALSE}
+# definindo os parâmetros
+tempo_sono <- c(5, 4, 6, 5)
+media_sono <- 6.13
+
+#Calculando o teste t
+
+t.test(tempo_sono, 
+       mu = media_sono, 
+       alternative = "two.sided", 
+       conf.level = 0.05)
+
+```  
+Perceba que nós seguimos basicamente os mesmos passos do exemplo anterior na criação do script. A diferença aqui está no argumento `mu` que indica o valor verdadeiro da média.  
+No resultado deste teste t, temos que o valor de p é maior do que o nível de significância, portanto, não existem evidências suficentes para rejeitar a hipótese H0 de que as médias são iguais.  
+
+# Referências  
+
+* H. Wickham. ggplot2: Elegant Graphics for Data Analysis. Springer-Verlag New York, 2016.  
+
+* Hadley Wickham (2011). The Split-Apply-Combine Strategy for Data Analysis. Journal of Statistical Software, 40(1), 1-29. URL <https://www.jstatsoft.org/v40/i01/>.  
+
+* R Core Team (2022). R: A language and environment for statistical computing. R Foundation for Statistical Computing, Vienna, Austria. URL <https://www.R-project.org/>.
+
+
+</div>
